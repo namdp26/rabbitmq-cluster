@@ -1,0 +1,54 @@
+---
+# - name: rabbitmq_users | test create user
+#   rabbitmq_user:
+#     name: "{{ rabbitmq_users.name }}"
+#     password: "{{ rabbitmq_users.password }}"
+#     vhost: "{{ rabbitmq_users.vhost }}"
+#     configure_priv: "{{ rabbitmq_users.configure_priv }}"
+#     read_priv: "{{ rabbitmq_users.read_priv }}"
+#     write_priv: "{{ rabbitmq_users.write_priv }}"
+#     tags: "{{ rabbitmq_users.tags }}"
+#     permissions: "{{ rabbitmq_users.permissions }}"
+#     state: present
+  # run_once: yes
+
+- name: rabbitmq_users | creating rabbitmq users
+  rabbitmq_user:
+    name: "{{ item['name'] }}"
+    password: "{{ item['password'] }}"
+    vhost: "{{ item['vhost'] | default(omit) }}"
+    configure_priv: "{{ item['configure_priv'] | default(omit) }}"
+    read_priv: "{{ item['read_priv'] | default(omit) }}"
+    write_priv: "{{ item['write_priv'] | default(omit) }}"
+    tags: "{{ item['tags'] | default(omit) }}"
+    permissions: "{{ item['permissions'] | default(omit) }}"
+    state: present
+  
+  loop: "{{ rabbitmq_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+        (rabbitmq_enable_clustering is defined and
+          not rabbitmq_enable_clustering) or
+          rabbitmq_enable_clustering is not defined
+
+- name: rabbitmq_users | creating rabbitmq users
+  rabbitmq_user:
+    name: "{{ item['name'] }}"
+    password: "{{ item['password'] }}"
+    vhost: "{{ item['vhost'] | default(omit) }}"
+    configure_priv: "{{ item['configure_priv'] | default(omit) }}"
+    read_priv: "{{ item['read_priv'] | default(omit) }}"
+    write_priv: "{{ item['write_priv'] | default(omit) }}"
+    tags: "{{ item['tags'] | default(omit) }}"
+    permissions: "{{ item['permissions'] | default(omit) }}"
+    state: present
+  run_once: yes
+  delegate_to: "{{ rabbitmq_master }}"
+  
+  loop: "{{ rabbitmq_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: >
+        rabbitmq_enable_clustering is defined and
+          rabbitmq_enable_clustering

@@ -1,0 +1,72 @@
+---
+- name: Debian | Install dependency packages
+  apt:
+    name:
+      - curl
+      - gnupg2
+      - apt-transport-https
+    state: present
+    update_cache: true
+
+- name: Debian | Adding RabbitMQ repo public GPG key to the apt repo
+  apt_key:
+    url: "{{ rabbitmq_debian_repo_key }}"
+    state: present
+
+- name: Debian | Adding RabbitMQ team public GPG key to the apt repo
+  apt_key:
+    keyserver: keys.openpgp.org
+    id: "{{ rabbitmq_debian_team_key }}"
+    state: present
+
+- name: Debian | Adding RabbitMQ repo
+  apt_repository:
+    repo: "{{ rabbitmq_debian_repo }}"
+    state: present
+
+- name: Debian | Adding RabbitMQ relang repo public GPG key to the apt repo
+  apt_key:
+    url: "{{ rabbitmq_debian_erlang_repo_key }}"
+    state: present
+
+- name: Debian | Add Rabbitmq erlang repo
+  apt_repository:
+    repo: "{{ rabbitmq_debian_erlang_repo }}"
+    state: present
+  when: rabbitmq_debian_erlang_from_rabbit
+
+- name: Debian | Install Erlang indices
+  apt:
+    name:
+      - erlang-base
+      - erlang-asn1
+      - erlang-crypto
+      - erlang-eldap
+      - erlang-ftp
+      - erlang-inets
+      - erlang-mnesia
+      - erlang-os-mon
+      - erlang-parsetools
+      - erlang-public-key
+      - erlang-runtime-tools
+      - erlang-snmp
+      - erlang-ssl
+      - erlang-syntax-tools
+      - erlang-tftp
+      - erlang-tools
+      - erlang-xmerl
+    state: present
+    update_cache: true
+
+- name: Debian | Installing RabbitMQ server
+  apt:
+    name:
+      - rabbitmq-server{{ (rabbitmq_debian_version_defined and rabbitmq_debian_version is defined) | ternary(['=', rabbitmq_debian_version] | join(''), '') }}
+    state: present
+    update_cache: true
+
+- name: Debian | Ensuring that the RabbitMQ service is running and enable
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes

@@ -1,0 +1,28 @@
+---
+- include: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Include RedHat tasks
+  include_tasks: redhat.yml
+  when: >
+        ansible_distribution == "CentOS" or
+        ansible_distribution == "Red Hat Enterprise Linux" or
+        ansible_distribution == "OracleLinux"
+
+- name: Include Fedora tasks
+  include_tasks: fedora.yml
+  when: ansible_distribution == "Fedora"
+
+- name: Manage RabbitMQ plugins
+  include_tasks: rabbitmq_plugins.yml
+  when: rabbitmq_plugins is defined
+
+- name: Check if RabbitMQ guest user exists
+  command: rabbitmqctl list_users
+  register: list_users_result
+  ignore_errors: yes
+
+- name: Delete RabbitMQ guest user
+  command: rabbitmqctl delete_user guest
+  when: "'guest' in list_users_result.stdout"
+  ignore_errors: yes

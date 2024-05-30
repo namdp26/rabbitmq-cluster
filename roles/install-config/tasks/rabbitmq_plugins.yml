@@ -1,0 +1,13 @@
+---
+- name: Download RabbitMQ plugins
+  get_url:
+    url: "{{ item }}"
+    dest: "/usr/lib/rabbitmq/lib/rabbitmq_server-{{ rabbitmq_version }}/plugins"
+    mode: '0644'
+  loop: "{{ rabbitmq_plugins_download }}"
+
+- name: rabbitmq_plugins | installing plugin(s)
+  rabbitmq_plugin:
+    name: "{{ rabbitmq_plugins }}"
+  when: rabbitmq_plugins
+  notify: restart rabbitmq-server
